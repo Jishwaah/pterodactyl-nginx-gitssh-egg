@@ -2,9 +2,13 @@ FROM debian:bookworm-slim
 
 LABEL author="Ym0t" maintainer="YmoT@tuta.com"
 
-ARG PHP_VERSION
+ARG PHP_VERSION=8.4
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    PHP_VERSION=${PHP_VERSION}
+
+COPY ./scripts/update-php-packages.sh /usr/local/bin/update-php-packages
+RUN chmod +x /usr/local/bin/update-php-packages
 
 RUN apt-get update && apt-get install -y \
         git \
@@ -108,9 +112,11 @@ RUN apt-get update && apt-get install -y \
         php${PHP_VERSION}-protobuf \
         php${PHP_VERSION}-dev \
     # Optional packages (may not be available for all PHP versions)
-    && apt-get install -y --no-install-recommends php${PHP_VERSION}-memcache || true \
-    && apt-get install -y --no-install-recommends php${PHP_VERSION}-memcached || true \
-    && apt-get install -y --no-install-recommends php${PHP_VERSION}-opcache || true \
+    && { apt-get install -y --no-install-recommends php${PHP_VERSION}-memcache || true; } \
+    && { apt-get install -y --no-install-recommends php${PHP_VERSION}-memcached || true; } \
+    && { apt-get install -y --no-install-recommends php${PHP_VERSION}-opcache || true; } \
+    # Upgrade and verify every installed PHP package against Sury's current candidate
+    && /usr/local/bin/update-php-packages \
     # Final verification: ensure PHP-FPM was installed correctly
     && command -v php-fpm${PHP_VERSION} >/dev/null 2>&1 || { \
         echo "ERROR: php-fpm${PHP_VERSION} binary not found after installation!"; \
@@ -178,7 +184,7 @@ STOPSIGNAL SIGINT
 
 # Copy entrypoint script
 COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh /usr/local/bin/update-php-packages
 
 
 CMD ["/entrypoint.sh"]

@@ -53,6 +53,10 @@ A versatile Pterodactyl Egg featuring Nginx, PHP 8.x, WordPress, Git, GitHub SSH
 7. Fill in all required variables, including whether WordPress is desired and the PHP version field (must be set explicitly)  
 8. After the installation finishes, start the server manually once so Nginx, PHP-FPM, and the optional modules begin running  
 
+### Enforced PHP package updates
+
+The PHP 8.2, 8.3, 8.4 and 8.5 images enforce the newest packages available from the Sury repository during both image build and every container restart. The updater refreshes APT metadata, upgrades every installed package in the selected PHP series (including held packages), and verifies each installed Debian package version exactly matches APT's current candidate before running the Pterodactyl startup command. Startup stops if Sury cannot be refreshed, a package cannot be upgraded, or any PHP package remains outdated.
+
 <br>
 
 ## Auto-Update System
